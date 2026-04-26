@@ -48,6 +48,11 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		argv[index] = repl.ReplaceAll(argument, "")
 	}
 
+	if m.Foreground {
+		m.stdWriter = w
+		m.errWriter = w
+	}
+
 	err := m.run(argv)
 
 	if m.PassThru {
@@ -68,6 +73,10 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
 		resp.Error = err.Error()
+	}
+
+	if m.Foreground {
+		return err
 	}
 
 	w.Header().Add("content-type", "application/json")

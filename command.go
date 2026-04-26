@@ -55,8 +55,8 @@ type Cmd struct {
 	log     *zap.Logger
 
 	// logging
-	stdWriter io.WriteCloser
-	errWriter io.WriteCloser
+	stdWriter io.Writer
+	errWriter io.Writer
 }
 
 // Provision implements caddy.Provisioner.
