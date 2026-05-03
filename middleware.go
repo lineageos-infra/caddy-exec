@@ -49,6 +49,9 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	}
 
 	if m.Foreground {
+		w.Header().Add("Trailer", "Status")
+		w.WriteHeader(http.StatusOK)
+
 		m.stdWriter = w
 		m.errWriter = w
 	}
@@ -64,6 +67,11 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 	}
 
 	if m.Foreground {
+		if err != nil {
+			w.Header().Add("Status", err.Error())
+		} else {
+			w.Header().Add("Status", "OK")
+		}
 		return err
 	}
 
