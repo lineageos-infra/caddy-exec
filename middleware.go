@@ -19,6 +19,20 @@ func init() {
 	caddy.RegisterModule(Middleware{})
 }
 
+// MiddlewareWriter implements an unbuffered response writer.
+type MiddlewareWriter struct {
+	w http.ResponseWriter
+	f http.Flusher
+}
+
+func (mw *MiddlewareWriter) Write(p []byte) (int, error) {
+	n, err := mw.w.Write(p)
+	if err == nil {
+		mw.f.Flush()
+	}
+	return n, err
+}
+
 // Middleware implements an HTTP handler that runs shell command.
 type Middleware struct {
 	Cmd
@@ -54,10 +68,14 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 
 		if f, ok := w.(http.Flusher); ok {
 			f.Flush()
-		}
 
-		m.stdWriter = w
-		m.errWriter = w
+			mw := &MiddlewareWriter{w, f}
+			m.stdWriter = mw
+			m.errWriter = mw
+		} else {
+			m.stdWriter = w
+			m.errWriter = w
+		}
 	}
 
 	err := m.run(argv)
