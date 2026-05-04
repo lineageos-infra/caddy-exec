@@ -52,6 +52,10 @@ func (m Middleware) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddy
 		w.Header().Add("Trailer", "Status")
 		w.WriteHeader(http.StatusOK)
 
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+
 		m.stdWriter = w
 		m.errWriter = w
 	}
